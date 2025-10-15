@@ -14,23 +14,25 @@ fi
 case $1 in
 "20.04")
   podman build \
-    --squash-all \
     --jobs=4 \
     --arch=arm64 \
     --network=host \
+    --layers \
     -f Containerfile.rootfs.20_04 \
     -t jetson-rootfs
   ;;
+    # --squash-all \
 
 "22.04")
   podman build \
-    --squash-all \
     --jobs=4 \
     --arch=arm64 \
     --network=host \
+    --layers \
     -f Containerfile.rootfs.22_04 \
     -t jetson-rootfs
   ;;
+    # --squash-all \
 
 "24.04")
   podman build \
@@ -49,10 +51,14 @@ esac
 
 podman save --format docker-dir -o base jetson-rootfs
 
+rm -rf rootfs || true
 mkdir rootfs
 
-for layer in "$(jq -r '.layers[].digest' base/manifest.json | awk -F ':' '{print $2}')"; do
-  tar xvf base/"$layer" --directory=rootfs
+for layers in "$(jq -r '.layers[].digest' base/manifest.json | awk -F ':' '{print $2}')"; do
+  while read -r layer; do
+    echo "Extracting layer $layer"
+    tar xvf base/"$layer" --directory=rootfs
+  done <<< "$layers"
 done
 
 rm -rf rootfs/root/.bash_history
