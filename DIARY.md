@@ -248,6 +248,8 @@ sudo gpasswd --add ${USER} dialout
 newgrp dialout
 ```
 
+Лидар находится на порту `/dev/ttyACM0`, это нужно прописать в его конфиге `src/lslidar_driver/params/lsx10.yaml`
+
 Чтобы проверить работу лидара:
 
 ```
